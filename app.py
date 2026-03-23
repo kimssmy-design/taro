@@ -1,10 +1,54 @@
 import streamlit as st
 import random
 
-# 1. 페이지 설정
-st.set_page_config(page_title="타로 마스터 v1.4", layout="centered")
+# 1. 페이지 설정 (최상단 필수!)
+st.set_page_config(page_title="타로 동아리 도감", layout="centered")
 
-# 2. 타로 카드 데이터 (내용 동일)
+# 2. 화면 고정 및 카드 뒤집기 애니메이션 CSS
+st.markdown("""
+    <style>
+    .main .block-container {
+        max-width: 500px;
+        padding-top: 1.5rem;
+        margin: 0 auto;
+    }
+    .flip-card {
+      background-color: transparent;
+      width: 220px; height: 380px; 
+      perspective: 1000px;
+      margin: 10px auto;
+    }
+    .flip-card-inner {
+      position: relative;
+      width: 100%; height: 100%;
+      text-align: center;
+      transition: transform 0.6s;
+      transform-style: preserve-3d;
+      cursor: pointer;
+    }
+    .flip-card:hover .flip-card-inner { transform: rotateY(180deg); }
+    .flip-card-front, .flip-card-back {
+      position: absolute;
+      width: 100%; height: 100%;
+      backface-visibility: hidden;
+      border-radius: 15px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    }
+    .flip-card-front {
+      background-color: #1a2a6c; color: #fdbb2d;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px; font-weight: bold; border: 4px solid #fdbb2d;
+    }
+    .flip-card-back { background-color: white; transform: rotateY(180deg); }
+    .flip-card-back img { width: 100%; height: 100%; border-radius: 15px; object-fit: cover; }
+    .card-label {
+        background-color: #ffffff; border: 2px solid #1a2a6c; border-radius: 10px;
+        padding: 8px; text-align: center; margin-top: 10px; font-weight: bold; color: #1a2a6c;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
+# 3. 타로 메이저 카드 데이터
 tarot_data = [
     {"no": "0", "name": "The Fool (광대)", "keywords": ["자유", "모험", "순수", "시작"], "desc": "아무것도 가진 것 없지만 어디든 갈 수 있는 여행자", "img": "https://upload.wikimedia.org/wikipedia/commons/9/90/RWS_Tarot_00_Fool.jpg"},
     {"no": "1", "name": "The Magician (마법사)", "keywords": ["창조", "능력", "자신감", "잠재력"], "desc": "무엇이든 만들어낼 수 있는 준비된 능력자", "img": "https://upload.wikimedia.org/wikipedia/commons/d/de/RWS_Tarot_01_Magician.jpg"},
@@ -22,7 +66,7 @@ tarot_data = [
     {"no": "13", "name": "Death (죽음)", "keywords": ["종결", "이별", "변화", "새로운 시작"], "desc": "낡은 것을 끝내고 완전히 새로운 단계로 나아가기 위한 변화", "img": "https://upload.wikimedia.org/wikipedia/commons/d/d7/RWS_Tarot_13_Death.jpg"},
     {"no": "14", "name": "Temperance (절제)", "keywords": ["조화", "중용", "순환", "인내"], "desc": "서로 다른 두 요소를 적절히 섞어 평온을 유지하는 연금술", "img": "https://upload.wikimedia.org/wikipedia/commons/f/f8/RWS_Tarot_14_Temperance.jpg"},
     {"no": "15", "name": "The Devil (악마)", "keywords": ["속박", "유혹", "집착", "본능"], "desc": "물질적인 욕망이나 나쁜 습관에 얽매여 있는 상태", "img": "https://upload.wikimedia.org/wikipedia/commons/5/55/RWS_Tarot_15_Devil.jpg"},
-    {"no": "16", "name": "The Tower (탑)", "keywords": ["붕괴", "충격", "해방", "갑작스러운 변화"], "desc": "기존의 가치관이 무너지며 겪는 시련과 그 뒤의 진실", "img": "https://upload.wikimedia.org/wikipedia/commons/5/53/RWS_Tarot_16_Tower.jpg"},
+    {"no": "16", "name": "The Tower (탑)", "keywords": ["붕가지", "충격", "해방", "갑작스러운 변화"], "desc": "기존의 가치관이 무너지며 겪는 시련과 그 뒤의 진실", "img": "https://upload.wikimedia.org/wikipedia/commons/5/53/RWS_Tarot_16_Tower.jpg"},
     {"no": "17", "name": "The Star (별)", "keywords": ["희망", "영감", "치유", "낙천주의"], "desc": "어둠 속에서 길을 안내하는 희망의 빛과 평화로운 마음", "img": "https://upload.wikimedia.org/wikipedia/commons/d/db/RWS_Tarot_17_Star.jpg"},
     {"no": "18", "name": "The Moon (달)", "keywords": ["불안", "혼란", "직관", "모호함"], "desc": "보이지 않는 두려움과 불확실한 상황 속의 예민한 감각", "img": "https://upload.wikimedia.org/wikipedia/commons/7/7f/RWS_Tarot_18_Moon.jpg"},
     {"no": "19", "name": "The Sun (태양)", "keywords": ["성공", "기쁨", "활기", "긍정"], "desc": "모든 것이 명확하게 밝혀지는 찬란한 성공과 어린이 같은 순수함", "img": "https://upload.wikimedia.org/wikipedia/commons/1/1b/RWS_Tarot_19_Sun.jpg"},
@@ -30,81 +74,81 @@ tarot_data = [
     {"no": "21", "name": "The World (세계)", "keywords": ["완성", "통합", "여행", "완벽"], "desc": "긴 여정의 마침표이자 완벽한 조화를 이룬 최고의 단계", "img": "https://upload.wikimedia.org/wikipedia/commons/f/ff/RWS_Tarot_21_World.jpg"}
 ]
 
-# 3. 사이드바 메뉴
+
+# 4. 사이드바 메뉴
 st.sidebar.title("🃏 타로 동아리")
 menu = st.sidebar.radio("활동 선택", ["카드 도감 암기", "객관식 복습 퀴즈"])
 
-# 4. 카드 도감 암기 모드
+# 5. 카드 도감 암기 모드
 if menu == "카드 도감 암기":
-    st.title("📖 메이저 카드 핵심 암기")
-    
-    if 'card_idx' not in st.session_state:
-        st.session_state.card_idx = 0
-        
+    st.title("📖 메이저 카드 암기")
+    if 'card_idx' not in st.session_state: st.session_state.card_idx = 0
     current_card = tarot_data[st.session_state.card_idx]
-    
-    # [수정] 이미지 중앙 정렬 및 선출력 (경고 해결 버전)
-    _, col_img, _ = st.columns([1, 2, 1])
-    with col_img:
-        # use_column_width 대신 use_container_width 사용
-        st.image(current_card['img'], use_container_width=True)
-    
-    # [수정] 카드 이름 박스 후출력
+
     st.markdown(f"""
-    <div style="background-color: #f3e5f5; border: 5px solid #7b1fa2; border-radius: 20px; padding: 20px; text-align: center; margin-top: 10px;">
-        <h1 style="color: #4a148c; font-size: 3.5rem; margin: 0;">{current_card['no']}</h1>
-        <h2 style="color: #7b1fa2; margin-bottom: 5px;">{current_card['name']}</h2>
-        <p style="font-style: italic; color: #666; margin: 0;">"{current_card['desc']}"</p>
-    </div>
+        <div class="flip-card"><div class="flip-card-inner">
+        <div class="flip-card-front"><div>✨ TAROT ✨<br><span style="font-size:12px;">마우스를 올려봐!</span></div></div>
+        <div class="flip-card-back"><img src="{current_card['img']}"></div>
+        </div></div>
+        <div class="card-label">{current_card['no']}. {current_card['name']}</div>
     """, unsafe_allow_html=True)
-    
-    # 키워드 4개 배치
-    st.markdown("---")
-    cols = st.columns(4)
-    for i, kw in enumerate(current_card['keywords']):
-        cols[i].success(f"**{kw}**")
-        
-    # 이동 버튼
+
     st.write("")
+    num_keywords = len(current_card['keywords'])
+    cols = st.columns(num_keywords)
+    for i, kw in enumerate(current_card['keywords']):
+        cols[i].info(f"**{kw}**")
+
+    st.divider()
     c1, c2 = st.columns(2)
-    if c1.button("⬅️ 이전 카드", use_container_width=True) and st.session_state.card_idx > 0:
+    if c1.button("⬅️ 이전", use_container_width=True) and st.session_state.card_idx > 0:
         st.session_state.card_idx -= 1
         st.rerun()
-    if c2.button("다음 카드 ➡️", use_container_width=True) and st.session_state.card_idx < len(tarot_data) - 1:
+    if c2.button("다음 ➡️", use_container_width=True) and st.session_state.card_idx < len(tarot_data) - 1:
         st.session_state.card_idx += 1
         st.rerun()
 
-# 5. 객관식 퀴즈 모드
+# 6. 객관식 퀴즈 모드
 elif menu == "객관식 복습 퀴즈":
     st.title("🎯 키워드 맞히기 퀴즈")
     
-    if 'quiz_card' not in st.session_state:
+    # 세션 초기화
+    if 'quiz_card' not in st.session_state: 
         st.session_state.quiz_card = random.choice(tarot_data)
-        
+    if 'quiz_answered' not in st.session_state:
+        st.session_state.quiz_answered = False
+
     target = st.session_state.quiz_card
-    st.info(f"**문제: 다음 키워드들을 가진 카드의 이름은 무엇일까요?**\n\n🔹 {', '.join(target['keywords'])}")
+    st.info(f"**문제: 다음 키워드들을 가진 카드는?**\n\n🔹 {', '.join(target['keywords'])}")
     
-    # 퀴즈 보기 세션 고정
+    # 선택지 생성
     if 'quiz_options' not in st.session_state:
         options = [target['name']]
-        while len(options) < 4:
-            wrong_opt = random.choice(tarot_data)['name']
-            if wrong_opt not in options:
-                options.append(wrong_opt)
+        other_names = [c['name'] for c in tarot_data if c['name'] != target['name']]
+        # 데이터가 부족할 경우를 대비해 안전하게 샘플링
+        wrong_samples = random.sample(other_names, min(3, len(other_names)))
+        options.extend(wrong_samples)
         random.shuffle(options)
         st.session_state.quiz_options = options
-    
-    # 4지선다 버튼 배치
+
+    # 퀴즈 버튼 출력
     cols = st.columns(2)
     for i, opt in enumerate(st.session_state.quiz_options):
-        with cols[i%2]:
-            if st.button(opt, key=f"quiz_opt_{i}", use_container_width=True):
-                if opt == target['name']:
-                    st.balloons()
-                    st.success(f"정답입니다! 🎉 이 카드는 **{target['name']}**입니다.")
-                    if st.button("다음 문제 풀기", use_container_width=True):
-                        if 'quiz_card' in st.session_state: del st.session_state.quiz_card
-                        if 'quiz_options' in st.session_state: del st.session_state.quiz_options
-                        st.rerun()
-                else:
-                    st.error("아쉽네요! 다시 한번 확인해 보세요. 🤔")
+        # 이미 정답을 맞힌 후에는 버튼 비활성화 가능 (선택 사항)
+        if cols[i%2].button(opt, key=f"q_{i}", use_container_width=True):
+            if opt == target['name']:
+                st.session_state.quiz_answered = True
+                st.balloons()
+                st.success(f"정답! **{target['name']}**")
+            else:
+                st.error("다시 생각해보자! 🤔")
+
+    # [핵심 수정] 정답을 맞힌 상태일 때만 '새 문제' 버튼을 하단에 고정 출력
+    if st.session_state.get('quiz_answered', False):
+        st.divider()
+        if st.button("다음 문제 풀기 ➡️", use_container_width=True):
+            # 세션 데이터 삭제하여 초기화
+            del st.session_state.quiz_card
+            del st.session_state.quiz_options
+            st.session_state.quiz_answered = False
+            st.rerun()
