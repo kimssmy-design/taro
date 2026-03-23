@@ -1,7 +1,8 @@
 import streamlit as st
 import random
+import time
 
-# 1. 페이지 설정 (최상단 필수!)
+# 1. 페이지 설정
 st.set_page_config(page_title="타로 동아리 도감", layout="centered")
 
 # 2. 화면 고정 및 카드 뒤집기 애니메이션 CSS
@@ -45,10 +46,16 @@ st.markdown("""
         background-color: #ffffff; border: 2px solid #1a2a6c; border-radius: 10px;
         padding: 8px; text-align: center; margin-top: 10px; font-weight: bold; color: #1a2a6c;
     }
+    .card-back-view {
+        width: 200px; height: 340px; background-color: #1a2a6c; 
+        border: 4px solid #fdbb2d; border-radius: 15px; margin: 0 auto;
+        display: flex; align-items: center; justify-content: center;
+        color: #fdbb2d; font-size: 40px; box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    }
     </style>
     """, unsafe_allow_html=True)
 
-# 3. 타로 메이저 카드 데이터
+# 3. 타로 메이저 카드 데이터 (22장 전체 유지)
 tarot_data = [
     {"no": "0", "name": "The Fool (광대)", "keywords": ["자유", "모험", "순수", "시작"], "desc": "아무것도 가진 것 없지만 어디든 갈 수 있는 여행자", "img": "https://upload.wikimedia.org/wikipedia/commons/9/90/RWS_Tarot_00_Fool.jpg"},
     {"no": "1", "name": "The Magician (마법사)", "keywords": ["창조", "능력", "자신감", "잠재력"], "desc": "무엇이든 만들어낼 수 있는 준비된 능력자", "img": "https://upload.wikimedia.org/wikipedia/commons/d/de/RWS_Tarot_01_Magician.jpg"},
@@ -66,7 +73,7 @@ tarot_data = [
     {"no": "13", "name": "Death (죽음)", "keywords": ["종결", "이별", "변화", "새로운 시작"], "desc": "낡은 것을 끝내고 완전히 새로운 단계로 나아가기 위한 변화", "img": "https://upload.wikimedia.org/wikipedia/commons/d/d7/RWS_Tarot_13_Death.jpg"},
     {"no": "14", "name": "Temperance (절제)", "keywords": ["조화", "중용", "순환", "인내"], "desc": "서로 다른 두 요소를 적절히 섞어 평온을 유지하는 연금술", "img": "https://upload.wikimedia.org/wikipedia/commons/f/f8/RWS_Tarot_14_Temperance.jpg"},
     {"no": "15", "name": "The Devil (악마)", "keywords": ["속박", "유혹", "집착", "본능"], "desc": "물질적인 욕망이나 나쁜 습관에 얽매여 있는 상태", "img": "https://upload.wikimedia.org/wikipedia/commons/5/55/RWS_Tarot_15_Devil.jpg"},
-    {"no": "16", "name": "The Tower (탑)", "keywords": ["붕가지", "충격", "해방", "갑작스러운 변화"], "desc": "기존의 가치관이 무너지며 겪는 시련과 그 뒤의 진실", "img": "https://upload.wikimedia.org/wikipedia/commons/5/53/RWS_Tarot_16_Tower.jpg"},
+    {"no": "16", "name": "The Tower (탑)", "keywords": ["붕괴", "충격", "해방", "갑작스러운 변화"], "desc": "기존의 가치관이 무너지며 겪는 시련과 그 뒤의 진실", "img": "https://upload.wikimedia.org/wikipedia/commons/5/53/RWS_Tarot_16_Tower.jpg"},
     {"no": "17", "name": "The Star (별)", "keywords": ["희망", "영감", "치유", "낙천주의"], "desc": "어둠 속에서 길을 안내하는 희망의 빛과 평화로운 마음", "img": "https://upload.wikimedia.org/wikipedia/commons/d/db/RWS_Tarot_17_Star.jpg"},
     {"no": "18", "name": "The Moon (달)", "keywords": ["불안", "혼란", "직관", "모호함"], "desc": "보이지 않는 두려움과 불확실한 상황 속의 예민한 감각", "img": "https://upload.wikimedia.org/wikipedia/commons/7/7f/RWS_Tarot_18_Moon.jpg"},
     {"no": "19", "name": "The Sun (태양)", "keywords": ["성공", "기쁨", "활기", "긍정"], "desc": "모든 것이 명확하게 밝혀지는 찬란한 성공과 어린이 같은 순수함", "img": "https://upload.wikimedia.org/wikipedia/commons/1/1b/RWS_Tarot_19_Sun.jpg"},
@@ -74,12 +81,11 @@ tarot_data = [
     {"no": "21", "name": "The World (세계)", "keywords": ["완성", "통합", "여행", "완벽"], "desc": "긴 여정의 마침표이자 완벽한 조화를 이룬 최고의 단계", "img": "https://upload.wikimedia.org/wikipedia/commons/f/ff/RWS_Tarot_21_World.jpg"}
 ]
 
-
 # 4. 사이드바 메뉴
 st.sidebar.title("🃏 타로 동아리")
-menu = st.sidebar.radio("활동 선택", ["카드 도감 암기", "객관식 복습 퀴즈"])
+menu = st.sidebar.radio("활동 선택", ["카드 도감 암기", "객관식 복습 퀴즈", "이미지 보고 키워드 맞히기"])
 
-# 5. 카드 도감 암기 모드
+# 5. [메뉴 1] 카드 도감 암기
 if menu == "카드 도감 암기":
     st.title("📖 메이저 카드 암기")
     if 'card_idx' not in st.session_state: st.session_state.card_idx = 0
@@ -108,11 +114,9 @@ if menu == "카드 도감 암기":
         st.session_state.card_idx += 1
         st.rerun()
 
-# 6. 객관식 퀴즈 모드
+# 6. [메뉴 2] 객관식 복습 퀴즈
 elif menu == "객관식 복습 퀴즈":
     st.title("🎯 키워드 맞히기 퀴즈")
-    
-    # 세션 초기화
     if 'quiz_card' not in st.session_state: 
         st.session_state.quiz_card = random.choice(tarot_data)
     if 'quiz_answered' not in st.session_state:
@@ -121,20 +125,16 @@ elif menu == "객관식 복습 퀴즈":
     target = st.session_state.quiz_card
     st.info(f"**문제: 다음 키워드들을 가진 카드는?**\n\n🔹 {', '.join(target['keywords'])}")
     
-    # 선택지 생성
     if 'quiz_options' not in st.session_state:
         options = [target['name']]
         other_names = [c['name'] for c in tarot_data if c['name'] != target['name']]
-        # 데이터가 부족할 경우를 대비해 안전하게 샘플링
         wrong_samples = random.sample(other_names, min(3, len(other_names)))
         options.extend(wrong_samples)
         random.shuffle(options)
         st.session_state.quiz_options = options
 
-    # 퀴즈 버튼 출력
     cols = st.columns(2)
     for i, opt in enumerate(st.session_state.quiz_options):
-        # 이미 정답을 맞힌 후에는 버튼 비활성화 가능 (선택 사항)
         if cols[i%2].button(opt, key=f"q_{i}", use_container_width=True):
             if opt == target['name']:
                 st.session_state.quiz_answered = True
@@ -143,12 +143,67 @@ elif menu == "객관식 복습 퀴즈":
             else:
                 st.error("다시 생각해보자! 🤔")
 
-    # [핵심 수정] 정답을 맞힌 상태일 때만 '새 문제' 버튼을 하단에 고정 출력
     if st.session_state.get('quiz_answered', False):
         st.divider()
         if st.button("다음 문제 풀기 ➡️", use_container_width=True):
-            # 세션 데이터 삭제하여 초기화
             del st.session_state.quiz_card
             del st.session_state.quiz_options
             st.session_state.quiz_answered = False
             st.rerun()
+
+# 7. [메뉴 3] 이미지 보고 키워드 맞히기 (로직 오류 수정 완료)
+elif menu == "이미지 보고 키워드 맞히기":
+    st.title("🖼️ 이미지 보고 키워드 찾기")
+    
+    # 1단계: 카드 뽑기 전 화면
+    if 'img_quiz_card' not in st.session_state:
+        st.markdown('<div class="card-back-view">✨</div>', unsafe_allow_html=True)
+        st.write("")
+        if st.button("🃏 새로운 카드 뽑기", use_container_width=True):
+            with st.spinner('신중하게 카드를 섞는 중...'):
+                time.sleep(1)
+            # 카드를 뽑고 바로 세션에 저장
+            st.session_state.img_quiz_card = random.choice(tarot_data)
+            st.session_state.img_quiz_answered = False
+            # 옵션도 미리 생성
+            target = st.session_state.img_quiz_card
+            correct_keywords = ", ".join(target['keywords'])
+            options = [correct_keywords]
+            other_keywords = [", ".join(c['keywords']) for c in tarot_data if c['name'] != target['name']]
+            wrong_samples = random.sample(other_keywords, min(3, len(other_keywords)))
+            options.extend(wrong_samples)
+            random.shuffle(options)
+            st.session_state.img_quiz_options = options
+            st.rerun() # 화면을 즉시 갱신하여 2단계로 진입
+    
+    # 2단계: 카드가 뽑힌 후 화면
+    else:
+        target = st.session_state.img_quiz_card
+
+        st.markdown(f"""
+            <div style="text-align:center;">
+                <img src="{target['img']}" width="200" style="border-radius:15px; box-shadow: 0 4px 10px rgba(0,0,0,0.3);">
+            </div>
+            <br>
+        """, unsafe_allow_html=True)
+
+        st.warning("❓ **위 카드의 올바른 키워드 조합은 무엇일까요?**")
+
+        # 버튼 출력
+        for i, opt in enumerate(st.session_state.img_quiz_options):
+            if st.button(opt, key=f"q2_{i}", use_container_width=True):
+                if opt == ", ".join(target['keywords']):
+                    st.session_state.img_quiz_answered = True
+                    st.balloons()
+                    st.success(f"정답입니다! 이 카드는 **{target['name']}** 입니다.")
+                else:
+                    st.error("키워드가 카드와 맞지 않아요! 🧐")
+
+        # 다음 문제로 넘어가기 위한 초기화 버튼
+        if st.session_state.get('img_quiz_answered', False):
+            st.divider()
+            if st.button("다른 카드 뽑기 🃏", key="reset_img_quiz", use_container_width=True):
+                del st.session_state.img_quiz_card
+                del st.session_state.img_quiz_options
+                st.session_state.img_quiz_answered = False
+                st.rerun()
